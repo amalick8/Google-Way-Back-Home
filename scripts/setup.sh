@@ -45,7 +45,22 @@ echo ""
 echo -e "${CYAN}🚀 Welcome to Way Back Home!${NC}"
 echo ""
 
-# Get project ID
+# =============================================================================
+# Step 0: Check Google Cloud Authentication
+# =============================================================================
+echo "Checking Google Cloud authentication..."
+
+if ! gcloud auth print-access-token > /dev/null 2>&1; then
+    echo -e "${RED}Error: Not authenticated with Google Cloud.${NC}"
+    echo "Please run: gcloud auth login"
+    exit 1
+fi
+
+echo -e "${GREEN}✓ Authenticated${NC}"
+
+# =============================================================================
+# Step 1: Get/Verify Project ID
+# =============================================================================
 PROJECT_ID=$(gcloud config get-value project 2>/dev/null || echo "")
 if [ -z "$PROJECT_ID" ] || [ "$PROJECT_ID" == "(unset)" ]; then
     echo -e "${RED}Error: No Google Cloud project configured.${NC}"
@@ -53,7 +68,40 @@ if [ -z "$PROJECT_ID" ] || [ "$PROJECT_ID" == "(unset)" ]; then
     exit 1
 fi
 
-# Step 1: Get event code
+echo -e "Using project: ${CYAN}${PROJECT_ID}${NC}"
+
+# =============================================================================
+# Step 2: Check and Enable Billing (NEW!)
+# =============================================================================
+echo ""
+echo -e "${YELLOW}Checking billing configuration...${NC}"
+
+# Run the billing enablement script
+if ! python3 "${SCRIPT_DIR}/billing-enablement.py"; then
+    echo ""
+    echo -e "${RED}Billing setup incomplete. Please configure billing and try again.${NC}"
+    exit 1
+fi
+
+# =============================================================================
+# Step 3: Enable Required APIs
+# =============================================================================
+echo ""
+echo -e "${YELLOW}Enabling required APIs...${NC}"
+
+# Enable Vertex AI API (required for Level 0)
+gcloud services enable aiplatform.googleapis.com --quiet 2>/dev/null || {
+    echo -e "${RED}Failed to enable Vertex AI API.${NC}"
+    echo "This may be a billing or permissions issue."
+    exit 1
+}
+
+echo -e "${GREEN}✓ Vertex AI API enabled${NC}"
+
+# =============================================================================
+# Step 4: Get event code
+# =============================================================================
+echo ""
 echo -e "Enter event code (from QR/slide)."
 echo -e "If you're learning on your own, enter ${YELLOW}sandbox${NC} to join the public learning environment."
 echo ""
@@ -67,7 +115,9 @@ fi
 # Trim whitespace
 EVENT_CODE=$(echo "$EVENT_CODE" | xargs)
 
-# Step 2: Validate event
+# =============================================================================
+# Step 5: Validate event
+# =============================================================================
 echo "Validating event..."
 
 EVENT_RESPONSE=$(curl -s -w "\n%{http_code}" "${API_BASE}/events/${EVENT_CODE}")
@@ -88,7 +138,9 @@ EVENT_NAME=$(echo "$EVENT_BODY" | python3 -c "import sys,json; print(json.load(s
 echo -e "${GREEN}✓ Connected to: ${EVENT_NAME}${NC}"
 echo ""
 
-# Step 3: Get username
+# =============================================================================
+# Step 6: Get username
+# =============================================================================
 while true; do
     read -p "Choose your explorer name: " USERNAME
 
@@ -135,7 +187,9 @@ done
 echo ""
 echo "Initializing your explorer profile..."
 
-# Step 4: Reserve identity and get participant details
+# =============================================================================
+# Step 7: Reserve identity and get participant details
+# =============================================================================
 INIT_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${API_BASE}/participants/init" \
     -H "Content-Type: application/json" \
     -d "{\"event_code\": \"${EVENT_CODE}\", \"username\": \"${USERNAME}\"}")
@@ -160,7 +214,9 @@ if [ -z "$PARTICIPANT_ID" ]; then
     exit 1
 fi
 
-# Step 5: Write config.json
+# =============================================================================
+# Step 8: Write config.json
+# =============================================================================
 cat > "$CONFIG_FILE" << EOF
 {
     "event_code": "${EVENT_CODE}",
