@@ -248,5 +248,5 @@ echo -e "     Then map domain: ${CYAN}gcloud beta run domain-mappings create --s
 echo -e "     ${YELLOW}Note: Domain mapping is Preview. For production, consider using a Load Balancer instead.${NC}"
 echo ""
 echo -e "  ${YELLOW}5. Create the sandbox event:${NC}"
-echo -e "     See backend/README.md for how to obtain a Firebase ID token"
+echo -e "     See dashboard/backend/README.md for how to obtain a Firebase ID token"
 echo ""

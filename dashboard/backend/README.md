@@ -45,7 +45,7 @@ Handles event management, participant registration, avatar storage, and location
 ### Local Development
 
 ```bash
-cd backend
+cd dashboard/backend
 
 # Authenticate with Google Cloud
 gcloud auth application-default login
@@ -56,7 +56,7 @@ cp .env.template .env
 # Edit .env with your values
 
 # Run the development server
-../scripts/run-backend.sh
+../../scripts/run-backend.sh
 ```
 
 **Access the API:**
@@ -169,7 +169,7 @@ gcloud builds submit --config cloudbuild.yaml \
 ### Direct Deploy
 
 ```bash
-cd backend
+cd dashboard/backend
 
 gcloud run deploy way-back-home-api \
   --source . \
@@ -247,7 +247,7 @@ gcloud run domain-mappings create \
 
 ## 📝 License
 
-Apache 2.0 - See [LICENSE](../LICENSE) file in the repository root.
+Apache 2.0 - See [LICENSE](../../LICENSE) file in the repository root.
 
 ---
 

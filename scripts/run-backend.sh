@@ -17,7 +17,7 @@ echo ""
 # Change to backend directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-cd "${PROJECT_ROOT}/backend"
+cd "${PROJECT_ROOT}/dashboard/backend"
 
 # Check for virtual environment
 if [ ! -d ".venv" ]; then

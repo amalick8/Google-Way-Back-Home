@@ -218,22 +218,22 @@ fi
 # Determine BACKEND_URL (check multiple sources)
 # -----------------------------------------------------------------------------
 # Priority:
-# 1. backend/.env API_BASE_URL (if running own backend)
+# 1. dashboard/backend/.env API_BASE_URL (if running own backend)
 # 2. config.json api_base (from Level 0 registration)
 # 3. Default shared workshop backend
 
-BACKEND_ENV_FILE="$SCRIPT_DIR/../../backend/.env"
+BACKEND_ENV_FILE="$SCRIPT_DIR/../../dashboard/backend/.env"
 DEFAULT_BACKEND_URL="https://api.waybackhome.dev"
 
 if [ -f "$BACKEND_ENV_FILE" ]; then
-    # Check backend/.env for custom backend URL
+    # Check dashboard/backend/.env for custom backend URL
     BACKEND_URL=$(grep -E "^API_BASE_URL=" "$BACKEND_ENV_FILE" 2>/dev/null | cut -d'=' -f2- | tr -d '"' | tr -d "'" || echo "")
     if [ -n "$BACKEND_URL" ]; then
-        echo "      Found BACKEND_URL in backend/.env: $BACKEND_URL"
+        echo "      Found BACKEND_URL in dashboard/backend/.env: $BACKEND_URL"
     fi
 fi
 
-# If not found in backend/.env, check config.json
+# If not found in dashboard/backend/.env, check config.json
 if [ -z "$BACKEND_URL" ] && [ -f "$CONFIG_FILE" ]; then
     BACKEND_URL=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE')).get('api_base', ''))" 2>/dev/null || echo "")
     if [ -n "$BACKEND_URL" ]; then

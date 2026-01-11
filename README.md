@@ -1,6 +1,6 @@
 # 🚀 Way Back Home
 
-![Way Back Home](frontend/public/prelude.png)
+![Way Back Home](dashboard/frontend/public/prelude.png)
 
 **An immersive AI workshop platform where participants learn to build intelligent agents while rescuing a stranded space explorer.**
 
@@ -61,8 +61,8 @@ See [Deployment Guide](#-deployment) below for running your own instance.
 |-----------|-------------|
 | [Level 0 README](level_0/README.md) | Avatar generation with multi-turn image AI |
 | [Level 1 README](level_1/README.md) | Multi-agent crash site analysis |
-| [Backend README](backend/README.md) | Mission Control API documentation |
-| [Frontend README](frontend/README.md) | 3D map visualization |
+| [Backend README](dashboard/backend/README.md) | Mission Control API documentation |
+| [Frontend README](dashboard/frontend/README.md) | 3D map visualization |
 
 ## 🏗️ Architecture Overview
 
@@ -176,13 +176,13 @@ Contributions are welcome! Please read our contributing guidelines before submit
 
 ```bash
 # Backend
-cd backend
+cd dashboard/backend
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8080
 
 # Frontend
-cd frontend
+cd dashboard/frontend
 npm install
 npm run dev
 ```

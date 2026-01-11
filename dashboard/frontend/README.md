@@ -43,7 +43,7 @@ Explorers can see themselves and others on an alien planet, track their progress
 ### Installation
 
 ```bash
-cd frontend
+cd dashboard/frontend
 
 # Install dependencies
 npm install
@@ -186,7 +186,7 @@ const Scene3D = dynamic(() => import('@/components/three/Scene'), {
 
 ## 📝 License
 
-Apache 2.0 - See [LICENSE](../LICENSE) file in the repository root.
+Apache 2.0 - See [LICENSE](../../LICENSE) file in the repository root.
 
 ---
 
