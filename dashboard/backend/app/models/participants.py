@@ -52,6 +52,7 @@ class ParticipantResponse(BaseModel):
     level_3_complete: Optional[bool] = None
     level_4_complete: Optional[bool] = None
     level_5_complete: Optional[bool] = None
+    completion_percentage: Optional[int] = None
 
 
 class ParticipantUpdate(BaseModel):
