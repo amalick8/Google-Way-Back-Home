@@ -61,11 +61,7 @@ app.add_middleware(
 )
 
 
-# Define your session service
-session_service = InMemorySessionService()
-
-# Define your runner
-runner = Runner(app_name=APP_NAME, agent=root_agent, session_service=session_service)
+#REPLACE_RUNNER_CONFIG
 
 # ========================================
 # WebSocket Endpoint
@@ -96,7 +92,7 @@ async def websocket_endpoint(
     
     #REPLACE_LIVE_REQUEST
 
-    #REPLACE_SORT_RESPONSE
+#REPLACE_SORT_RESPONSE
 
 
 # Serve Static Files (Fallback for SPA)
