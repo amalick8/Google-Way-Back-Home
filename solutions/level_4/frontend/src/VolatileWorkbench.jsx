@@ -58,7 +58,10 @@ export default function VolatileWorkbench() {
     const [chatLogs, setChatLogs] = useState([]); // Array of { sender: 'USR'|'AI', text: string, timestamp: number }
     const [hasTriggeredHazard, setHasTriggeredHazard] = useState(false); // New state for deterministic hazard
     const [isDispatchThinking, setIsDispatchThinking] = useState(false); // New state for loading indicator
+    const [initiationWarning, setInitiationWarning] = useState(false);
     const chatEndRef = useRef(null);
+
+
 
     // Auto-scroll to bottom of chat
     useEffect(() => {
@@ -105,7 +108,17 @@ export default function VolatileWorkbench() {
             // combine tracks if needed, or just allow the screen share to drive the video
             // For this specific dual-agent flow, the backend expects "realtime_input"
 
+
             setMediaStream(stream);
+
+            // Trigger Loading Layer
+            console.log("TRIGGERING LOADING LAYER");
+            setInitiationWarning(true);
+            setTimeout(() => {
+                setInitiationWarning(false);
+            }, 5000);
+
+
 
             // Init Game Logic
             const models = Object.keys(DRIVES);
@@ -517,6 +530,25 @@ export default function VolatileWorkbench() {
 
     return (
         <div className="w-screen h-screen bg-slate-900 text-cyan-50 flex flex-col overflow-hidden font-sans">
+
+            {/* HERDER */}
+            {initiationWarning && (
+                <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                    <div className="text-center max-w-2xl px-8">
+                        <h1 className="text-4xl font-bold text-yellow-500 mb-6 animate-pulse">INITIALIZING NEURAL LINK...</h1>
+                        <div className="text-xl text-yellow-200/80 mb-8 space-y-4 font-mono">
+                            <p>ESTABLISHING SECURE CHANNEL.</p>
+                            <p className="border-t border-b border-yellow-500/30 py-4">
+                                WAIT FOR AUDIO CONFIRMATION:<br />
+                                <span className="text-white font-bold">"Biometric Scanner Online"</span>
+                            </p>
+                        </div>
+                        <div className="w-full h-1 bg-yellow-900 rounded-full overflow-hidden">
+                            <div className="h-full bg-yellow-400 animate-[width_5s_linear_forwards]" style={{ width: '0%' }}></div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* HERDER */}
             <header className="h-16 border-b border-cyan-800 bg-slate-950/80 flex items-center justify-between px-6 backdrop-blur">

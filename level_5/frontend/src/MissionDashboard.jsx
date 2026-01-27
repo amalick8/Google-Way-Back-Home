@@ -8,12 +8,34 @@ export default function MissionDashboard() {
     const [signalStrength, setSignalStrength] = useState(0);
     const [customFormation, setCustomFormation] = useState("");
     const [isTransmitting, setIsTransmitting] = useState(false);
+    const [loadingOverlay, setLoadingOverlay] = useState(true); // New Loading State
+
+    // Initial Loading Timer
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setLoadingOverlay(false);
+        }, 6000);
+        return () => clearTimeout(timer);
+    }, []);
 
     // Mission Success State
     const [formationCount, setFormationCount] = useState(0);
     const [missionSuccess, setMissionSuccess] = useState(false);
+    const successTriggeredRef = useRef(false);
 
-    // Drag Refs
+    // WIN CONDITION: Correctly trigger completion with 10s DELAY
+    useEffect(() => {
+        if (formationCount >= 3 && !missionSuccess && !successTriggeredRef.current) {
+            successTriggeredRef.current = true;
+            console.log("Win condition met! Waiting 10s...");
+
+            setTimeout(() => {
+                setMissionSuccess(true);
+                updateStatus();
+            }, 10000);
+        }
+    }, [formationCount, missionSuccess]);
+
     const draggedIdRef = useRef(null);
     const [draggedPod, setDraggedPod] = useState(null); // For UI visual feedback if needed
     const logsEndRef = useRef(null);
@@ -218,16 +240,7 @@ export default function MissionDashboard() {
             setSignalStrength(s => Math.max(0, s - 50)); // Power drain on transmission end
 
             // Increment success count
-            setFormationCount(prev => {
-                const newState = prev + 1;
-                if (newState >= 3) {
-                    setTimeout(() => {
-                        setMissionSuccess(true);
-                        updateStatus();
-                    }, 15000); // wait before success
-                }
-                return newState;
-            });
+            setFormationCount(prev => prev + 1);
 
 
         } catch (e) {
@@ -310,6 +323,32 @@ export default function MissionDashboard() {
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
         >
+
+            {/* INITIAL LOADING OVERLAY */}
+            {loadingOverlay && (
+                <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-md">
+                    <div className="flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-500">
+                        <div className="relative">
+                            <Activity className="w-32 h-32 text-cyan-500 animate-spin-slow" />
+                            <div className="absolute inset-0 bg-cyan-500/30 blur-xl animate-pulse"></div>
+                        </div>
+
+                        <div className="text-center">
+                            <h1 className="text-6xl font-black text-cyan-500 tracking-[0.2em] mb-4 relative">
+                                INITIALIZING<br />COMMAND DASHBOARD
+                            </h1>
+                            <div className="w-96 h-2 bg-cyan-900/50 rounded-full overflow-hidden border border-cyan-700/50 mx-auto">
+                                <div className="h-full bg-cyan-500 animate-[width_6s_linear_forwards]" style={{ width: '0%' }}></div>
+                            </div>
+                            <p className="text-cyan-200/50 font-mono mt-4 text-sm animate-pulse">
+                                &gt; ESTABLISHING UPLINK...<br />
+                                &gt; EXECUTE 3 FORMATION PATTERNS TO RE-ESTABLISH MOTHERSHIP CONNECTION
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* TRANSMISSION OVERLAY */}
             {isTransmitting && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-[2px] pointer-events-none">
@@ -415,17 +454,7 @@ export default function MissionDashboard() {
             <div className="absolute inset-0 z-20 p-6 pointer-events-none flex justify-between">
 
                 {/* LEFT COLUMN */}
-                <div className="flex flex-col justify-between h-full max-w-md pointer-events-none">
-
-                    {/* Top Left: Title & Status */}
-                    <div className="flex flex-col gap-2 pointer-events-auto">
-                        <h1 className="text-4xl font-black text-cyan-400 tracking-wider drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]">
-                            MISSION CHARLIE
-                        </h1>
-                        <div className="bg-slate-950/80 backdrop-blur border border-slate-800 p-2 px-4 rounded-lg text-xs text-slate-400 self-start">
-                            STATUS: <span className="text-green-400 animate-pulse">LIVE LINK ESTABLISHED</span>
-                        </div>
-                    </div>
+                <div className="flex flex-col justify-end h-full max-w-md pointer-events-none">
 
                     {/* Bottom Left: Formation Panel */}
                     <div className="bg-slate-950/90 backdrop-blur-md border border-slate-800 p-6 rounded-tl-xl rounded-tr-xl rounded-br-xl pointer-events-auto">
@@ -462,10 +491,10 @@ export default function MissionDashboard() {
                 </div>
 
                 {/* RIGHT COLUMN */}
-                <div className="flex flex-col gap-4 h-full w-[350px] pointer-events-none">
+                <div className="flex flex-col justify-between items-end h-full pointer-events-none pb-0">
 
                     {/* Top Right: Mission Control */}
-                    <div className="bg-slate-950/80 backdrop-blur border border-slate-800 p-4 rounded-lg pointer-events-auto shrink-0">
+                    <div className="bg-slate-950/80 backdrop-blur border border-slate-800 p-4 rounded-lg pointer-events-auto shrink-0 w-[350px]">
                         <h1 className="text-xl font-bold text-cyan-400 flex items-center gap-2">
                             <Activity className="w-5 h-5" /> MISSION CONTROL
                         </h1>
@@ -478,30 +507,41 @@ export default function MissionDashboard() {
                         </div>
                     </div>
 
-                    {/* Fill Right: Logs Panel */}
-                    <div className="flex-1 bg-slate-950/90 backdrop-blur-md border border-slate-800 p-4 rounded-lg pointer-events-auto flex flex-col overflow-hidden">
-                        <h2 className="text-sm font-bold text-slate-400 mb-2 flex items-center gap-2 border-b border-slate-800 pb-2 shrink-0">
-                            <Terminal className="w-4 h-4" /> SYSTEM LOGS
-                        </h2>
-                        <div className="flex-1 overflow-y-auto space-y-1 font-mono text-xs pr-2">
-                            {logs.length === 0 && <div className="text-slate-600 italic">Waiting for telemetry...</div>}
-                            {logs.map((log, i) => (
-                                <div key={i} className="text-cyan-500/80 hover:text-white transition-colors break-words">
-                                    {log}
+                    {/* Bottom Row Wrapper: Title/Status + Logs */}
+                    <div className="flex flex-row items-end gap-8 w-full justify-end flex-1 min-h-0 mt-4">
+
+                        {/* Title & Status (MOVED HERE - Left of logs) */}
+                        <div className="flex flex-col gap-2 pointer-events-auto items-end text-right mb-6">
+                            <h1 className="text-6xl font-black text-cyan-400 tracking-wider drop-shadow-[0_0_15px_rgba(34,211,238,0.6)]">
+                                MISSION CHARLIE
+                            </h1>
+                            <div className="bg-slate-950/80 backdrop-blur border border-slate-800 p-4 px-6 rounded-lg text-sm text-slate-400 self-end">
+                                STATUS: <span className="text-amber-400 animate-pulse text-base">UPLINK UNSTABLE // MANUAL SYNC REQUIRED</span>
+                                <div className="block text-xs text-cyan-400/70 mt-2 font-mono tracking-widest border-t border-slate-700 pt-2">
+                                    &gt; EXECUTE 3 FORMATION PATTERNS TO RE-ESTABLISH MOTHERSHIP CONNECTION
                                 </div>
-                            ))}
-                            <div ref={logsEndRef} />
+                            </div>
+                        </div>
+
+                        {/* Logs Panel */}
+                        <div className="bg-slate-950/90 backdrop-blur-md border border-slate-800 p-4 rounded-tl-lg rounded-tr-lg pointer-events-auto flex flex-col overflow-hidden w-[350px] h-full">
+                            <h2 className="text-sm font-bold text-slate-400 mb-2 flex items-center gap-2 border-b border-slate-800 pb-2 shrink-0">
+                                <Terminal className="w-4 h-4" /> SYSTEM LOGS
+                            </h2>
+                            <div className="flex-1 overflow-y-auto space-y-1 font-mono text-xs pr-2">
+                                {logs.length === 0 && <div className="text-slate-600 italic">Waiting for telemetry...</div>}
+                                {logs.map((log, i) => (
+                                    <div key={i} className="text-cyan-500/80 hover:text-white transition-colors break-words">
+                                        {log}
+                                    </div>
+                                ))}
+                                <div ref={logsEndRef} />
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            {/* DEBUG: JUMP TO SUCCESS */}
-            <button
-                onClick={() => setMissionSuccess(true)}
-                className="absolute bottom-4 right-4 z-[90] bg-slate-800/50 text-slate-500 text-[10px] px-2 py-1 rounded hover:bg-slate-700 hover:text-white transition-colors"
-            >
-                DEBUG: JUMP TO SUCCESS
-            </button>
+
         </div>
     );
 }
