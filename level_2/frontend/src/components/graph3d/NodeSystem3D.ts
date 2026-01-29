@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { SPACE_THEME } from '../../theme/spaceTheme';
 import type { GraphNode, NodeType, SurvivorNode } from '../../types/graph';
-import { lowPolyPlanetVertex, lowPolyPlanetFragment } from './Shaders';
+// import { lowPolyPlanetVertex, lowPolyPlanetFragment } from './Shaders';
 
 interface Node3DStyle {
     geometry: string;

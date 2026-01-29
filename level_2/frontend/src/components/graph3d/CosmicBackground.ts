@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { SPACE_THEME } from '../../theme/spaceTheme';
+// import { SPACE_THEME } from '../../theme/spaceTheme';
 
 export class CosmicBackground {
     private scene: THREE.Scene;

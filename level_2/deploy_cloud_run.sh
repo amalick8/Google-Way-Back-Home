@@ -43,5 +43,12 @@ gcloud builds submit --config cloudbuild.yaml \
 
 echo "------------------------------------------------"
 echo "Cloud Build Submitted Successfully!"
-echo "Follow the build logs in the link above."
+echo "Cloud Build Submitted Successfully!"
+echo "Retrieving Frontend URL..."
+
+FRONTEND_URL=$(gcloud run services describe survivor-frontend --region "$REGION" --format 'value(status.url)' 2>/dev/null || echo "URL not found")
+
+echo "------------------------------------------------"
+echo "Deployment Complete!"
+echo "Frontend URL: $FRONTEND_URL"
 echo "------------------------------------------------"

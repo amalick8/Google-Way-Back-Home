@@ -5,12 +5,12 @@ import { NodeSystem3D } from './NodeSystem3D';
 export class EdgeSystem3D {
     private parent: THREE.Object3D;
     private edgeLines: Map<string, THREE.Line> = new Map();
-    private nodeSystem: NodeSystem3D;
+    // private nodeSystem: NodeSystem3D;
     private material: THREE.LineBasicMaterial;
 
-    constructor(parent: THREE.Object3D, nodeSystem: NodeSystem3D) {
+    constructor(parent: THREE.Object3D, _nodeSystem: NodeSystem3D) {
         this.parent = parent;
-        this.nodeSystem = nodeSystem;
+        // this.nodeSystem = nodeSystem;
 
         // Shared material for all edges
         this.material = new THREE.LineBasicMaterial({

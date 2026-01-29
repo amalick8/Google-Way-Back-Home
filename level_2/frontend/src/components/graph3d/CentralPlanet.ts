@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { SPACE_THEME } from '../../theme/spaceTheme';
+// import { SPACE_THEME } from '../../theme/spaceTheme';
 import { lowPolyPlanetVertex, lowPolyPlanetFragment } from './Shaders';
 
 export class CentralPlanet {
@@ -10,6 +10,10 @@ export class CentralPlanet {
 
     constructor(scene: THREE.Scene) {
         this.scene = scene;
+        // Initialize with temporary empty meshes to satisfy TS strict initialization
+        // They are immediately overwritten in init()
+        this.mesh = new THREE.Mesh();
+        this.atmosphere = new THREE.Mesh();
         this.init();
     }
 
@@ -26,8 +30,9 @@ export class CentralPlanet {
             },
             vertexShader: lowPolyPlanetVertex,
             fragmentShader: lowPolyPlanetFragment,
-            flatShading: true,
         });
+
+        (material as any).flatShading = true;
 
         this.mesh = new THREE.Mesh(geometry, material);
         this.scene.add(this.mesh);

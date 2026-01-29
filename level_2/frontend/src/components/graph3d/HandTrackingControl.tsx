@@ -46,7 +46,7 @@ export const HandTrackingControl: React.FC<HandTrackingControlProps> = ({ onHand
 
     useEffect(() => {
         let mounted = true;
-        let timeoutId: NodeJS.Timeout;
+        let timeoutId: ReturnType<typeof setTimeout>;
 
         const setupMediaPipe = async () => {
             try {
