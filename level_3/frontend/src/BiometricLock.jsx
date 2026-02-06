@@ -62,7 +62,7 @@ export default function BiometricLock() {
 
                         const completion_percentage = labsCompleted * 20;
                         const patchPayload = {
-                            level_4_complete: true,
+                            level_3_complete: true,
                             completion_percentage: completion_percentage
                         };
 
