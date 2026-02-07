@@ -193,7 +193,7 @@ export default function MissionDashboard() {
 
                 const completion_percentage = labsCompleted * 20;
                 const patchPayload = {
-                    level_3_complete: true,
+                    level_5_complete: true,
                     completion_percentage: completion_percentage
                 };
 
