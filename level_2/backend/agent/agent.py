@@ -107,7 +107,7 @@ Match percentages indicate relevance (higher = better match).
 3. Show users the search strategy (it's transparent)
 4. If results seem off, try `analyze_query` to debug
 5. For exact skill names, use `get_survivors_with_skill` (fastest)
-6. Delegate image/video to MultimediaSequentialAgent
+6. **CRITICAL**: If the user provides a file or you see "[System] Attached file path", you **MUST** delegate to `MultimediaExtractionPipeline` immediately. Do not describe the image yourself. The pipeline will handle upload, extraction, and saving.
 """
 
 USE_MEMORY_BANK = os.getenv("USE_MEMORY_BANK", "false").lower() == "true"
