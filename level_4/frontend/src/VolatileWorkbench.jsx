@@ -59,8 +59,8 @@ export default function VolatileWorkbench() {
     const [hasTriggeredHazard, setHasTriggeredHazard] = useState(false); // New state for deterministic hazard
     const [isDispatchThinking, setIsDispatchThinking] = useState(false); // New state for loading indicator
     const [initiationWarning, setInitiationWarning] = useState(false);
+    const [loadingOverlay, setLoadingOverlay] = useState(false); // Changed to false initially
     const chatEndRef = useRef(null);
-
 
 
     // Auto-scroll to bottom of chat
@@ -68,11 +68,81 @@ export default function VolatileWorkbench() {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [chatLogs, isDispatchThinking]);
 
-    // Socket Connection (Assume simple hook for now)
-    // Replace URL with actual endpoint
-    const socket = useRef(null);
+    // Effect to update participant status on mission complete
+    useEffect(() => {
+        if (missionStatus === "COMPLETE") {
+            const updateStatus = async () => {
+                try {
+                    console.log('[VolatileWorkbench] Attempting to fetch config.json...');
+                    let config = null;
+                    try {
+                        const configResponse = await fetch('/config.json');
+                        if (configResponse.ok) {
+                            config = await configResponse.json();
+                        } else {
+                            console.log('[VolatileWorkbench] config.json not found (status:', configResponse.status, ')');
+                        }
+                    } catch (e) {
+                        console.log('[VolatileWorkbench] Error fetching config.json:', e);
+                    }
+
+                    if (config && config.participant_id && config.api_base) {
+                        console.log('[VolatileWorkbench] found config.json:', config);
+
+                        const response = await fetch(`${config.api_base}/participants/${config.participant_id}`);
+                        if (!response.ok) {
+                            console.error('[VolatileWorkbench] GET participant failed:', response.status);
+                            return;
+                        }
+
+                        const data = await response.json();
+                        console.log('[VolatileWorkbench] GET participant success:', data);
+
+                        // Update level 4 to true
+                        const updatedData = { ...data, level_5_complete: true };
+
+                        // Calculate completion percentage
+                        let labsCompleted = 0;
+                        if (updatedData.level_1_complete) labsCompleted++;
+                        if (updatedData.level_2_complete) labsCompleted++;
+                        if (updatedData.level_3_complete) labsCompleted++;
+                        if (updatedData.level_4_complete) labsCompleted++;
+                        if (updatedData.level_5_complete) labsCompleted++;
+
+                        const completion_percentage = labsCompleted * 20;
+                        const patchPayload = {
+                            level_4_complete: true,
+                            completion_percentage: completion_percentage
+                        };
+
+                        console.log('[VolatileWorkbench] PATCH payload:', patchPayload);
+
+                        const patchResponse = await fetch(`${config.api_base}/participants/${config.participant_id}`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(patchPayload),
+                        });
+
+                        if (patchResponse.ok) {
+                            console.log('[VolatileWorkbench] PATCH success');
+                        } else {
+                            console.error('[VolatileWorkbench] PATCH failed:', patchResponse.status);
+                        }
+                    } else {
+                        console.log('[VolatileWorkbench] config.json missing required fields');
+                    }
+                } catch (err) {
+                    console.log('Optional config check failed:', err);
+                }
+            };
+            updateStatus();
+        }
+    }, [missionStatus]);
 
     // Initial Setup
+    const socket = useRef(null); // Restored missing socket ref
     const [mediaStream, setMediaStream] = useState(null);
     const audioContextRef = useRef(null);
     const processorRef = useRef(null);
@@ -81,10 +151,10 @@ export default function VolatileWorkbench() {
     const renderIntervalRef = useRef(null);
     const nextAudioTime = useRef(0);
 
-    // Initial Setup
     // Removed auto-connect on mount to allow user to initiate media first
 
     const startMission = async () => {
+        console.log("🚀 STARTING MISSION..."); // Debug Log
         try {
             // 1. Get Media (Screen + Mic)
             // Note: We need both. Usually prompt for Mic first, then Screen.
@@ -108,16 +178,13 @@ export default function VolatileWorkbench() {
             // combine tracks if needed, or just allow the screen share to drive the video
             // For this specific dual-agent flow, the backend expects "realtime_input"
 
-
             setMediaStream(stream);
 
             // Trigger Loading Layer
-            console.log("TRIGGERING LOADING LAYER");
-            setInitiationWarning(true);
+            setLoadingOverlay(true);
             setTimeout(() => {
-                setInitiationWarning(false);
-            }, 5000);
-
+                setLoadingOverlay(false);
+            }, 10000); // 6 Secs Loading from Click
 
 
             // Init Game Logic
@@ -531,20 +598,30 @@ export default function VolatileWorkbench() {
     return (
         <div className="w-screen h-screen bg-slate-900 text-cyan-50 flex flex-col overflow-hidden font-sans">
 
-            {/* HERDER */}
-            {initiationWarning && (
-                <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-                    <div className="text-center max-w-2xl px-8">
-                        <h1 className="text-4xl font-bold text-yellow-500 mb-6 animate-pulse">INITIALIZING NEURAL LINK...</h1>
-                        <div className="text-xl text-yellow-200/80 mb-8 space-y-4 font-mono">
-                            <p>ESTABLISHING SECURE CHANNEL.</p>
-                            <p className="border-t border-b border-yellow-500/30 py-4">
-                                WAIT FOR AUDIO CONFIRMATION:<br />
-                                <span className="text-white font-bold">"Biometric Scanner Online"</span>
-                            </p>
+            {loadingOverlay && (
+                <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md">
+                    <div className="flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-500">
+                        <div className="relative">
+                            <Activity className="w-32 h-32 text-yellow-500 animate-bounce" />
+                            <div className="absolute inset-0 bg-yellow-500/30 blur-xl animate-pulse"></div>
                         </div>
-                        <div className="w-full h-1 bg-yellow-900 rounded-full overflow-hidden">
-                            <div className="h-full bg-yellow-400 animate-[width_5s_linear_forwards]" style={{ width: '0%' }}></div>
+
+                        <div className="text-center">
+                            <h1 className="text-6xl font-black text-yellow-500 tracking-[0.2em] mb-4 glitch-text">
+                                INITIALIZING WORKBENCH
+                            </h1>
+                            <div className="w-96 h-2 bg-yellow-900/50 rounded-full overflow-hidden border border-yellow-700/50 mx-auto">
+                                <div className="h-full bg-yellow-500 animate-[width_6s_linear_forwards]" style={{ width: '0%' }}></div>
+                            </div>
+                            <p className="text-yellow-200/50 font-mono mt-4 text-sm animate-pulse">
+                                &gt; LOADING SCHEMATICS...<br />
+                                &gt; CALIBRATING TOOLS...
+                            </p>
+                            <div className="mt-8 p-4 border border-yellow-500/30 bg-yellow-900/20 rounded animate-bounce">
+                                <p className="text-yellow-400 font-bold tracking-widest text-lg">
+                                    SAY "HEY! START TO ASSEMBLE" AFTER LOADING...
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
