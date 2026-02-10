@@ -437,7 +437,7 @@ With FastMCP, you don't need to manually register tools—the <code>@mcp.tool()<
 ```bash
 cd $HOME/way-back-home/level_1/mcp-server
 pip install -r requirements.txt
-uv run python main.py
+python main.py
 ```
 
 You should see:
