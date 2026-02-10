@@ -14,8 +14,18 @@
 
 set -e
 
-# Get Google Cloud Project ID
+# Get Google Cloud Project ID (check multiple sources)
 PROJECT_ID=$(gcloud config get-value project 2>/dev/null)
+if [ "$PROJECT_ID" = "(unset)" ]; then PROJECT_ID=""; fi
+
+# Fallback: check project_id.txt saved by setup.sh (persists across Cloud Shell sessions)
+if [ -z "$PROJECT_ID" ] && [ -s "$HOME/project_id.txt" ]; then
+    PROJECT_ID=$(cat "$HOME/project_id.txt" | tr -d '[:space:]')
+    if [ -n "$PROJECT_ID" ]; then
+        echo "📋 Restored project from project_id.txt: $PROJECT_ID"
+        gcloud config set project "$PROJECT_ID" --quiet 2>/dev/null
+    fi
+fi
 
 if [ -z "$PROJECT_ID" ]; then
     echo "❌ Could not determine Google Cloud Project ID."
@@ -342,6 +352,6 @@ echo "  • GOOGLE_GENAI_USE_VERTEXAI=true (uses Vertex AI for Gemini)"
 echo "  • GOOGLE_CLOUD_LOCATION=$REGION"
 echo ""
 echo "Next steps:"
-echo "  1. Source the environment: source ~/way-back-home/set_env.sh"
+echo "  1. Source the environment: source \$HOME/way-back-home/set_env.sh"
 echo "  2. Continue with the codelab instructions"
 echo ""
