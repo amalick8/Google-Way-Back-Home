@@ -59,15 +59,90 @@ fi
 echo -e "${GREEN}✓ Authenticated${NC}"
 
 # =============================================================================
-# Step 1: Get/Verify Project ID
+# Step 1: Find or Create Google Cloud Project
 # =============================================================================
-PROJECT_ID=$(gcloud config get-value project 2>/dev/null || echo "")
-if [ -z "$PROJECT_ID" ] || [ "$PROJECT_ID" == "(unset)" ]; then
-    echo -e "${RED}Error: No Google Cloud project configured.${NC}"
-    echo "Please run: gcloud config set project YOUR_PROJECT_ID"
-    exit 1
+PROJECT_FILE="$HOME/project_id.txt"
+PROJECT_ID=""
+
+# 1a. Check for existing project_id.txt (from a previous level)
+if [ -s "$PROJECT_FILE" ]; then
+    EXISTING_PROJECT_ID=$(cat "$PROJECT_FILE" | tr -d '[:space:]')
+    echo -e "Found previously saved project ID: ${CYAN}${EXISTING_PROJECT_ID}${NC}"
+    if gcloud projects describe "$EXISTING_PROJECT_ID" --quiet >/dev/null 2>&1; then
+        echo -e "${GREEN}✓ Verified project access${NC}"
+        PROJECT_ID="$EXISTING_PROJECT_ID"
+        gcloud config set project "$PROJECT_ID" --quiet 2>/dev/null
+    else
+        echo -e "${YELLOW}Saved project '$EXISTING_PROJECT_ID' is invalid or inaccessible. Ignoring.${NC}"
+        rm "$PROJECT_FILE"
+    fi
 fi
 
+# 1b. Check currently active gcloud project
+if [ -z "$PROJECT_ID" ]; then
+    ACTIVE_PROJECT_ID=$(gcloud config get-value project 2>/dev/null)
+    if [ "$ACTIVE_PROJECT_ID" = "(unset)" ]; then ACTIVE_PROJECT_ID=""; fi
+
+    if [ -n "$ACTIVE_PROJECT_ID" ]; then
+        echo -e "Detected active project: ${CYAN}${ACTIVE_PROJECT_ID}${NC}"
+        if gcloud projects describe "$ACTIVE_PROJECT_ID" --quiet >/dev/null 2>&1; then
+            echo -e "${GREEN}✓ Verified project access${NC}"
+            PROJECT_ID="$ACTIVE_PROJECT_ID"
+        fi
+    fi
+fi
+
+# 1c. Interactive project creation if no project found
+if [ -z "$PROJECT_ID" ]; then
+    echo ""
+    echo -e "${YELLOW}No Google Cloud project detected. Let's set one up.${NC}"
+
+    CODELAB_PROJECT_PREFIX="waybackhome"
+    PREFIX_LEN=${#CODELAB_PROJECT_PREFIX}
+    MAX_SUFFIX_LEN=$(( 30 - PREFIX_LEN - 1 ))
+    RANDOM_SUFFIX=$(LC_ALL=C tr -dc 'a-z0-9' < /dev/urandom | head -c "$MAX_SUFFIX_LEN")
+    RANDOM_PROJECT_ID="${CODELAB_PROJECT_PREFIX}-${RANDOM_SUFFIX}"
+
+    while true; do
+        echo ""
+        echo "Select a Project ID:"
+        echo "  1. Press Enter to CREATE a new project: $RANDOM_PROJECT_ID"
+        echo "  2. Or type an existing Project ID to use."
+        read -p "Project ID: " USER_INPUT
+
+        TARGET_ID="${USER_INPUT:-$RANDOM_PROJECT_ID}"
+
+        if [ -z "$TARGET_ID" ]; then
+            echo -e "${RED}Project ID cannot be empty.${NC}"
+            continue
+        fi
+
+        echo "Checking status of '$TARGET_ID'..."
+
+        if gcloud projects describe "$TARGET_ID" >/dev/null 2>&1; then
+            echo -e "${GREEN}✓ Project '$TARGET_ID' exists and is accessible.${NC}"
+            PROJECT_ID="$TARGET_ID"
+            break
+        else
+            echo "Project '$TARGET_ID' not found. Attempting to create..."
+            if gcloud projects create "$TARGET_ID" --quiet; then
+                echo -e "${GREEN}✓ Successfully created project '$TARGET_ID'.${NC}"
+                PROJECT_ID="$TARGET_ID"
+                break
+            else
+                echo -e "${RED}Failed to create '$TARGET_ID'. Please try a different ID.${NC}"
+            fi
+        fi
+    done
+
+    gcloud config set project "$PROJECT_ID" --quiet || {
+        echo -e "${RED}Failed to set active project.${NC}"
+        exit 1
+    }
+fi
+
+# Save project ID for reuse across levels
+echo "$PROJECT_ID" > "$PROJECT_FILE"
 echo -e "Using project: ${CYAN}${PROJECT_ID}${NC}"
 
 # =============================================================================
