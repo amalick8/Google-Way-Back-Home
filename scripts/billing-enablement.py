@@ -23,7 +23,10 @@ try:
     from google.api_core import exceptions
 except ImportError:
     print("Installing google-cloud-billing...")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "--quiet", "google-cloud-billing"])
+    subprocess.check_call([
+        sys.executable, "-m", "pip", "install", "--quiet",
+        "--user", "--break-system-packages", "google-cloud-billing"
+    ])
     from google.cloud import billing_v1
     from google.api_core import exceptions
 
