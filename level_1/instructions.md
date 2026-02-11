@@ -1342,7 +1342,7 @@ The <code>adk deploy cloud_run</code> command handles all deployment complexity:
 cd $HOME/way-back-home/level_1
 source $HOME/way-back-home/set_env.sh
 
-adk deploy cloud_run \
+uv run adk deploy cloud_run \
   --project=$GOOGLE_CLOUD_PROJECT \
   --region=$REGION \
   --service_name=mission-analysis-ai \
