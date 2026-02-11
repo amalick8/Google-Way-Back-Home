@@ -48,9 +48,9 @@ export function ParticipantMarker({
   // Animate the marker
   useFrame((state) => {
     if (meshRef.current) {
-      // Gentle bobbing
+      // Gentle bobbing (local offset from group position)
       const bob = Math.sin(state.clock.elapsedTime * 2 + participant.participant_id.charCodeAt(0)) * 0.02
-      meshRef.current.position.y = position[1] + bob
+      meshRef.current.position.y = bob
 
       // Scale on hover
       const targetScale = hovered || isSelected ? 1.5 : 1
@@ -88,8 +88,8 @@ export function ParticipantMarker({
         onPointerOut={() => setHovered(false)}
         onClick={() => setSelectedParticipant(participant)}
       >
-        {/* Marker body - cute rounded shape */}
-        <capsuleGeometry args={[0.04, 0.06, 4, 8]} />
+        {/* Marker body - compact sphere */}
+        <sphereGeometry args={[0.05, 16, 16]} />
         <meshStandardMaterial
           color={levelColor}
           roughness={0.4}
@@ -97,12 +97,6 @@ export function ParticipantMarker({
           emissive={levelColor}
           emissiveIntensity={hovered || isSelected ? 0.5 : 0.2}
         />
-      </mesh>
-
-      {/* Pin point at bottom */}
-      <mesh position={[0, -0.08, 0]}>
-        <coneGeometry args={[0.02, 0.04, 4]} />
-        <meshStandardMaterial color={levelColor} />
       </mesh>
 
       {/* Avatar image or username label */}
