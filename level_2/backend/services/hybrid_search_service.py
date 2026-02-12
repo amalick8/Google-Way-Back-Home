@@ -460,26 +460,37 @@ Analyze the query:"""
         # Get all unique IDs
         all_ids = set(keyword_map.keys()) | set(rag_map.keys())
         
+        # Create rank maps (ID -> Rank, 1-based)
+        keyword_ranks = {r.id: i + 1 for i, r in enumerate(keyword_results)}
+        rag_ranks = {r.id: i + 1 for i, r in enumerate(rag_results)}
+        
+        # Constants
+        K = 60
+        
         merged_results = []
         
         for surv_id in all_ids:
             kw_result = keyword_map.get(surv_id)
             rag_result = rag_map.get(surv_id)
             
-            # Calculate combined score
-            kw_score = kw_result.score if kw_result else 0
-            rag_score = rag_result.score if rag_result else 0
+            # Calculate RRF Score
+            rank_kw = keyword_ranks.get(surv_id, float('inf'))
+            rank_rag = rag_ranks.get(surv_id, float('inf'))
             
-            # Weighted combination (RAG gets more weight for semantic)
-            if kw_result and rag_result:
-                # Found in both - very relevant!
-                combined_score = 0.4 * kw_score + 0.6 * rag_score
+            rrf_score = 0.0
+            if rank_kw != float('inf'):
+                rrf_score += 1.0 / (K + rank_kw)
+            if rank_rag != float('inf'):
+                rrf_score += 1.0 / (K + rank_rag)
+            
+            combined_score = rrf_score
+            
+            # Determine method for display
+            if rank_kw != float('inf') and rank_rag != float('inf'):
                 method = SearchMethod.HYBRID
-            elif rag_result:
-                combined_score = 0.6 * rag_score
+            elif rank_rag != float('inf'):
                 method = SearchMethod.RAG
             else:
-                combined_score = 0.4 * kw_score
                 method = SearchMethod.KEYWORD
             
             # Merge details
