@@ -1,59 +1,50 @@
-# Way Back Home - Git Ignore
-
-# Generated configuration (contains user-specific data)
-config.json
-
-# Environment files (contain secrets)
+# =============================================================================
+# SECRETS & ENVIRONMENT VARIABLES
+# =============================================================================
+# Never commit files containing secrets!
+# This includes .env files, JSON key files, and other credential files.
+*.env
 .env
-.env.local
-.env.production
+.env.*
+!/.env.example
 
-# Generated avatar images
-outputs/
+# Google Cloud credentials
+*.json
+client_secret.json
+credentials.json
 
-# Firebase
-.firebase/
-firebase-debug.log
+# =============================================================================
+# PYTHON
+# =============================================================================
 
-# Python
+# Virtual Environments
+# Keep your installed packages out of the repository.
+.venv/
+venv/
+env/
+ENV/
+
+# Python cache files
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
+
+# Distribution / packaging
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-# Python lib directories (but NOT frontend/lib which contains source code)
-/lib/
-/lib64/
-parts/
-sdist/
-var/
-wheels/
 *.egg-info/
-.installed.cfg
-*.egg
 
-# Virtual environments
-.venv/
-venv/
-ENV/
-env/
-
-# IDE
-.idea/
+# =============================================================================
+# IDE & EDITOR CONFIGURATION
+# =============================================================================
 .vscode/
-*.swp
-*.swo
-*~
+.idea/
+*.sublime-workspace
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
+# =============================================================================
+# TESTING & COVERAGE
+# =============================================================================
+.pytest_cache/
+.coverage
+.cache
+htmlcov/
